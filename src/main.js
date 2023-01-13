@@ -34,8 +34,14 @@ Vue.use(ElementUI, { locale })
 // Vue.use(ElementUI)
 
 Vue.config.productionTip = false
+//引入相关API请求接口
+import API from '@/api';
+//组件实例的原型的原型指向Vue.prototype
+//任意组件都可以使用API相关接口
+Vue.prototype.$API = API;
+
 // 输出当前环境
-console.log(process.env);
+// console.log(process.env);
 
 new Vue({
   el: '#app',
