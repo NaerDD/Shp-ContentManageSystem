@@ -33,7 +33,7 @@
       <el-table-column prop="prop" label="操作" width="width">
         <template slot-scope="{row}">
           <el-button type="warning" icon="el-icon-edit" size="mini" @click="updateTradeMark(row)">修改</el-button>
-          <el-button type="danger" icon="el-icon-delete" size="mini" >删除</el-button>
+          <el-button type="danger" icon="el-icon-delete" size="mini" @click="deleteTradeMark(row)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -62,15 +62,16 @@
     </el-pagination>
     <!-- 
       对话框
-            :visible.sync 控制对话框显示与隐藏用的
+      :visible.sync 控制对话框显示与隐藏用的
+      Form 组件提供了表单验证的功能，只需要通过 rules 属性传入约定的验证规则，并将 Form-Item 的 prop 属性设置为需校验的字段名即可
     -->
     <el-dialog :title="tmForm.id?'修改品牌':'添加品牌'" :visible.sync="dialogFormVisible" >
       <!-- form表单 model属性,这个属性的作用是,把表单的数据收集到那个对象的身上,将来表单验证,也需要这个属性-->
-      <el-form style="width:80%" :model="tmForm">
-        <el-form-item label="品牌名称" label-width="100px">
+      <el-form style="width:80%" :model="tmForm" :rules="rules" ref="ruleForm">
+        <el-form-item label="品牌名称" label-width="100px" prop="tmName">
           <el-input autocomplete="off" v-model="tmForm.tmName"></el-input>
         </el-form-item>
-        <el-form-item label="品牌LOGO" label-width="100px">
+        <el-form-item label="品牌LOGO" label-width="100px" prop="logoUrl">
           <!-- 
             :on-success="handleAvatarSuccess" //上传成功的回调
             :before-upload="beforeAvatarUpload" //上传之前的回调
@@ -101,6 +102,14 @@
 export default {
   name: "tradeMark",
   data() {
+    // 自定义校验规则
+    var validatetmName = (rule, value, callback) => {
+        if (value.length<2||value.length>10) {
+          callback(new Error('品牌名称2-10位'));
+        } else {
+          callback();
+        }
+      };
     return {
       //代表的分页器第几页
       page: 1,
@@ -116,6 +125,21 @@ export default {
       tmForm:{
         tmName:'',
         logoUrl:''
+      },
+      //表单验证的规则
+      rules:{
+        //品牌名称的验证规则 required 必须填写 以及字段前方的红色标记 message 提示信息 trigger用户行为设置 blur change
+        tmName: [
+            { required: true, message: '请输入品牌名称', trigger: 'blur' },
+            //品牌名称长度 自定义校验规则
+            { validator: validatetmName, trigger: 'change' }
+
+          ],
+          //品牌logo的验证规则
+        logoUrl: [
+            { required: true, message: '请选择品牌图片'},
+
+          ],
       }
     };
   },
@@ -183,8 +207,11 @@ export default {
       return isJPG && isLt2M;
     },
     //添加按钮(添加品牌|修改品牌)
-    async addOrUpdateTradeMark(){
-      this.dialogFormVisible = false;
+    addOrUpdateTradeMark(){
+      //如果全部验证字段通过,再去书写业务逻辑
+      this.$refs.ruleForm.validate(async(success)=>{
+        if(success){
+        this.dialogFormVisible = false;
       //发请求
       let result = await this.$API.trademark.reqAddOrUpdateTradeMark(this.tmForm);
       console.log(result);
@@ -199,8 +226,42 @@ export default {
         //添加或修改之后
         //如果是添加品牌 停留在第一页,修改品牌留在当前页面
         this.getPageList(this.tmForm.id?this.page:1);
+      }else{
+        console.log('错误的提交!');
+        return false;
+        
       }
+      }}
+      )
     },
+    //删除操作
+    deleteTradeMark(row){
+      //弹框
+      this.$confirm(`确定删除${row.tmName}?`, '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(async() => {
+          //当用户点击确定按钮后
+          //向服务器发请求
+          let result = await this.$API.trademark.reqDeleteTradeMark(row.id)
+          //如果删除成功
+          if(result.code == 200){
+            this.$message({
+            type: 'success',
+            message: '删除成功!'
+          });
+          //再次获取品牌列表数据
+          this.getPageList(this.list.length>1?this.page:this.page-11);
+          }
+        }).catch(() => {
+          //当用户点击取消按钮后
+          this.$message({
+            type: 'info',
+            message: '已取消删除'
+          });          
+        });
+    }
   },
 };
 </script>
