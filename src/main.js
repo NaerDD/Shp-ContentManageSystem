@@ -7,8 +7,11 @@ import "@/styles/index.scss"; // global css
 import App from "./App";
 import store from "./store";
 import router from "./router";
+import CategorySelect from "./components/CategorySelect";
+Vue.component(CategorySelect.name,CategorySelect)
 import "@/icons"; // icon
 import "@/permission"; // permission control
+
 
 /**
  * If you don't want to use mock-server

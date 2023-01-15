@@ -114,10 +114,10 @@ export default {
       this.$refs.loginForm.validate(valid => {
         //如果符合规则
         if (valid) {
-          //按钮loading效果
-          this.loading = true
-          //派发一个action:user/login 带着用户名和密码的载荷
-          this.$store.dispatch('user/login', this.loginForm).then(() => {
+            //按钮loading效果
+            this.loading = true
+            //派发一个action:user/login 带着用户名和密码的载荷
+            this.$store.dispatch('user/login', this.loginForm).then(() => {
             //登陆成功的路由跳转
             this.$router.push({ path: this.redirect || '/' })
             //loading效果结束
