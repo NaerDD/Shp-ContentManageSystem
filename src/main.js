@@ -38,8 +38,8 @@ import API from "@/api";
 //任意组件都可以使用API相关接口
 Vue.prototype.$API = API;
 
-// 输出当前环境
-// console.log(process.env);
+import HintButton from '@/components/HintButton';
+Vue.component(HintButton.name,HintButton);
 
 new Vue({
   el: "#app",
