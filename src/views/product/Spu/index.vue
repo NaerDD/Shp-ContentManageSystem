@@ -34,7 +34,13 @@
           :total="total">
         </el-pagination>
       </div>
-      <SpuForm v-show="scene==1"></SpuForm>
+      <!-- 
+        自定义事件:
+        给子组件打上一个ref=spu 之后在父组件的方法中就可以调用子组件的方法 
+        而且调用时候可以传递row等一些参数给子组件的函数 从而实现传递参数
+      而在子组件中直接使用挂载完毕后调用 会在页面展示完后直接调用 
+      之后再点击不会再调用 -->
+      <SpuForm v-show="scene==1" @changeScene="changeScene" ref="spu"></SpuForm>
       <SkuForm v-show="scene==2"></SkuForm>
     </el-card>
   </div>
@@ -57,7 +63,7 @@ export default {
       limit:3,//一页多少数据
       records:[],//spu列表的数据
       total:0,//分页器一共需要展示的数据条数
-      scene:1,//代表展示SPUI列表数据 1添加SPU|修改SPU 2添加SKU
+      scene:0,//代表展示SPUI列表数据 1添加SPU|修改SPU 2添加SKU
     };
   },
   methods: {
@@ -83,7 +89,7 @@ export default {
       const {page,limit,category3Id} = this;
       //带三个参数：page 第几页 limit 每一页多少条数据 三级分类id
       let result =  await this.$API.spu.reqSpuList(page,limit,category3Id);
-      console.log(result);
+      // console.log(result);
       if(result.code==200){
         this.total = result.data.total;
         this.records = result.data.records;
@@ -108,7 +114,15 @@ export default {
     //修改某一个Spu
     updateSpu(row){
       this.scene = 1;
+      //获取子组件SpuForm
+      //在父组件当中可以通过$ref获取子组件等等
+      this.$refs.spu.initSpuData(row);
     },
+    //自定义事件回调(SpuForm)
+    changeScene(scene){
+      //取消按钮切换场景
+      this.scene=scene;
+    }
 
   },
   components:{
