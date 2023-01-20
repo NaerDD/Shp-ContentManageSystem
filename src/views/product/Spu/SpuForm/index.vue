@@ -65,10 +65,9 @@
           <el-table-column prop="saleAttrName" label="属性名" width="width">
           </el-table-column>
           <el-table-column prop="prop" label="属性值名称列表" width="width">
-          <!-- @close="handleClose(tag)" -->
              <template slot-scope="{row,$index}">
               <!-- el-tag:用户展示已有属性值列表的数据 -->
-              <el-tag :key="tag.id" v-for="tag in row.spuSaleAttrValueList" :disable-transitions="false" @close="row.spuSaleAttrValueList.splice(index,1)" closable>
+              <el-tag :key="tag.id" v-for="(tag,index) in row.spuSaleAttrValueList" :disable-transitions="false" @close="row.spuSaleAttrValueList.splice(index,1)" closable>
                 {{tag.saleAttrValueName}}
               </el-tag>
               <!-- 前面的span与input切换 -->
@@ -83,15 +82,15 @@
           </el-table-column>
           <el-table-column prop="prop" label="操作" width="width">
             <template slot-scope="{ row, $index }">
-              <el-button type="danger" icon="el-icon-delete"></el-button>
+              <el-button type="danger" icon="el-icon-delete" size="mini" @click="spu.spuSaleAttrList.splice($index,1)"></el-button>
             </template>
           </el-table-column>
         </el-table>
       </el-form-item>
 
       <el-form-item>
-        <el-button type="primary">保存</el-button>
-        <el-button @click="$emit('changeScene', 0)">取消</el-button>
+        <el-button type="primary" @click="addOrUpdateSpu">保存</el-button>
+        <el-button @click="cancel">取消</el-button>
       </el-form-item>
     </el-form>
   </div>
@@ -110,7 +109,7 @@ export default {
         //描述
         description: "",
         //平台id
-        tmId: 0,
+        tmId: "",
         //spu图片信息
         spuImageList: [
           {
@@ -172,9 +171,9 @@ export default {
         this.spu = spuResult.data;
       }
       //获取品牌的信息
-      let TradeMarkResult = await this.$API.spu.reqTradeMarkList();
-      if (TradeMarkResult.code == 200) {
-        this.tradeMarkList = TradeMarkResult.data;
+      let tradeMarkResult = await this.$API.spu.reqTradeMarkList();
+      if (tradeMarkResult.code == 200) {
+        this.tradeMarkList = tradeMarkResult.data;
       }
       //获取SPU图片的数据
       let spuImageResult = await this.$API.spu.reqSpuImageList(spu.id);
@@ -240,7 +239,52 @@ export default {
       //修改inputVisible为false,显示button
       row.inputVisible = false;
       
-    }
+    },
+    //保存按钮的回调
+    async addOrUpdateSpu(){
+      //整理参数
+      //携带参数,对于图片 需要携带imageName imaUrl
+      this.spu.spuImageList = this.spuImageList.map(item=>{
+        return {
+          imgName:item.name,
+          imgUrl:(item.response&&item.response.data)||item.url
+        };
+      });
+      let result =  await this.$API.spu.reqAddOrUpdateSpu(this.spu);
+      if(result.code==200){
+        //提示成功
+        this.$message({type:'success',message:'保存成功'});
+        //通知父组件回到场景0 返回父级
+        this.$emit('changeScene', {scene:0,flag:this.spu.id?'修改':'添加'});
+      }
+      //清除数据
+      Object.assign(this._data,this.$options.data());
+    },
+    //点击添加SPU按钮的时候 发请求的函数
+    async addSpuData(category3Id){
+      //添加spu的时候收集三级分类的ID
+      this.spu.category3Id = category3Id
+      //获取品牌的信息
+      let tradeMarkResult = await this.$API.spu.reqTradeMarkList();
+      if (tradeMarkResult.code == 200) {
+        this.tradeMarkList = TradeMarkResult.data;
+      }
+      //获取平台全部的销售属性
+      let saleResult = await this.$API.spu.reqBaseSaleAttrList();
+      if (saleResult.code == 200) {
+        this.saleAttrList = saleResult.data;
+      }
+    },
+    //取消按钮的回调
+    cancel(){
+      //取消按钮回调,通知父亲切换场景 清空已填入数据
+      this.$emit('changeScene', {scene:0,flag:''});
+      //Object.assign:es6中新增的方法 可以合并对象 
+      //this._data组件实例 可以操作data当中响应式数据
+      //this.$options可以获取配置对象,配置对象的data函数执行,返回的响应式数据为空的
+      //清除数据
+      Object.assign(this._data,this.$options.data());
+    },
 
   },
   computed:{
