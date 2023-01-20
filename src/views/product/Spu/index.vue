@@ -43,7 +43,7 @@
       而在子组件中直接使用挂载完毕后调用 会在页面展示完后直接调用 
       之后再点击不会再调用 -->
       <SpuForm v-show="scene==1" @changeScene="changeScene" ref="spu"></SpuForm>
-      <SkuForm v-show="scene==2"></SkuForm>
+      <SkuForm v-show="scene==2" ref="sku"></SkuForm>
     </el-card>
   </div>
 </template>
@@ -146,7 +146,8 @@ export default {
     addSku(row){
       //切换场景为2
       this.scene = 2;
-      
+      //父组件调用子组件的方法,让子组件发请求---三个请求
+      this.$refs.sku.getData(this.category1Id,this.category2Id,row);
     }
   },
   components:{
