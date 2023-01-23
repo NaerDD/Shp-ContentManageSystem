@@ -42,18 +42,28 @@
       </el-form-item>
 
       <el-form-item label="图片列表">
-        <el-table style="width: 100%" border>
-          <el-table-column label="label" width="80" type="selection">
+        <el-table style="width: 100%" border :data="spuImageList" @selection-change="handleSelectionChange">
+          <el-table-column prop="prop" width="80" type="selection">
           </el-table-column>
-          <el-table-column label="图片" width="width"> </el-table-column>
-          <el-table-column label="名称" width="width"> </el-table-column>
-          <el-table-column label="操作" width="width"> </el-table-column>
+          <el-table-column prop="prop" label="图片" width="width"> 
+                <template slot-scope="{row,$index}">
+                  <img :src="row.imgUrl" style="width:100px;height:100px">
+                </template>
+          </el-table-column>
+          <el-table-column prop="imgName" label="名称" width="width"> 
+          </el-table-column>
+          <el-table-column prop="prop" label="操作" width="width">
+            <template slot-scope="{row,$index}">
+              <el-button type="primary" v-if="row.isDefault==0" @click="changeDefault(row)">设置默认</el-button>
+              <el-button v-else>默认</el-button>
+            </template>
+          </el-table-column>
         </el-table>
       </el-form-item>
 
       <el-form-item>
-        <el-button type="primary">保存</el-button>
-        <el-button>取消</el-button>
+        <el-button type="primary" @click="save">保存</el-button>
+        <el-button @click="cancel">取消</el-button>
       </el-form-item>
     </el-form>
   </div>
@@ -65,7 +75,7 @@ export default {
   data() {
     return {
       //存储图片的信息
-      SpuImageList: [],
+      spuImageList: [],
       //存储销售属性的数据
       spuSaleAttrList: [],
       //存储平台属性的数据
@@ -115,7 +125,9 @@ export default {
           // },
         ],
       },
-      spu:{}
+      spu:{},
+      //收集图片的数据字段:但是需要注意,收集的数据缺少isDefault字段,将来提交给服务器数据的时候需要整理参数
+      imageList:[],
     };
   },
   methods: {
@@ -128,17 +140,21 @@ export default {
       this.spu = spu ;
 
       //获取图片的数据
-      let result = await this.$API.sku.reqSpuImageList(spu.id);
+      let result = await this.$API.spu.reqSpuImageList(spu.id);
       if (result.code == 200) {
-        this.SpuImageList = result.data;
+        let list = result.data;
+        list.forEach(item => {
+          item.isDefault = 0;
+        });
+        this.spuImageList = list;
       }
       //获取销售属性的数据
-      let result1 = await this.$API.sku.reqSpuSaleAttrList(spu.id);
+      let result1 = await this.$API.spu.reqSpuSaleAttrList(spu.id);
       if (result1.code == 200) {
         this.spuSaleAttrList = result1.data;
       }
       //获取平台属性的接口
-      let result2 = await this.$API.sku.reqAttrInfoList(
+      let result2 = await this.$API.spu.reqAttrInfoList(
         category1Id,
         category2Id,
         spu.category3Id
@@ -147,6 +163,46 @@ export default {
         this.attrInfoList = result2.data;
       }
     },
+    //table表格复选框按钮的事件
+    handleSelectionChange(){
+      //获取到用户选中图片的信息数据,收集的数据缺少isDefault字段
+      this.imageList = params;
+    },
+    //排他操作
+    changeDefault(row){
+      //图片列表的数据的isDefault字段变为0
+      this.spuImageList.forEach(item=>{
+        item.isDefault = 0;
+      })
+      //点击的那个图片的数据变为1
+      row.isDefault = 1;
+      //收集默认图片的地址
+      this.skuInfo.skuDefaultImg = row.imgUrl;
+    },
+    //点击取消的回调
+    cancel(){
+      //自定义事件,让父组件切换场景0
+      this.$emit('changeScenes',0);
+    },
+    //保存按钮的事件
+    save(){
+      //整理参数
+      //整理平台属性
+      const {attrInfoList,skuInfo} = this;
+      //新建数据
+      let arr  = [];
+      //把收集到的数据整理一下
+      attrInfoList.forEach(item=>{
+        if(item.attrIdAndValueId){
+          const [attrId,valueId]  = item.attrIdAndValueId.split(":");
+          //携带给服务器参数应该是对象
+          let obj = {valueId,attrId};
+          arr.push(obj);
+        }
+      });
+      //将整理好的参数赋值给skuInfo.skuAttrValueList
+      skuInfo.skuAttrValueList = arr;
+    }
   },
 };
 </script>

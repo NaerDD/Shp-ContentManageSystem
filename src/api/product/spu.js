@@ -26,7 +26,15 @@ export const reqAddOrUpdateSpu = (spuInfo)=>{
 
   //删除SPU属性---带spuId
 export const reqDeleteSpu = (spuId)=>request({url:`/admin/product/deleteSpu/${spuId}`,method:'delete'});
+
+//获取图片数据的数据
+// export const reqSpuImageList = (spuId)=>request({url:`/admin/product/spuImageList/${spuId}`,method:'get'});
+
+//获取销售属性的数据
+export const reqSpuSaleAttrList = (spuId)=>request({url:`/admin/product/spuSaleAttrList/${spuId}`,method:'get'});
+
+//获取平台属性的接口
+export const reqAttrInfoList = (category1Id,category2Id,category3Id)=>request({url:`/admin/product/attrInfoList/${category1Id}/${category2Id}/${category3Id}`,method:'get'});
   
-
-
-
+//添加SKU
+export const reqAddSku = (skuInfo)=>request({url:`/admin/product/saveSkuInfo`,method:'post',data:skuInfo});
