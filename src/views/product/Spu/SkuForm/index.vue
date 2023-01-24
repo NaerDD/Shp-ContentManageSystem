@@ -42,13 +42,13 @@
       </el-form-item>
 
       <el-form-item label="图片列表">
-        <el-table style="width: 100%" border :data="spuImageList" @selection-change="handleSelectionChange">
+        <el-table style="width: 100%" border :data="spuImageList" selection-change="handleSelectionChange">
           <el-table-column prop="prop" width="80" type="selection">
           </el-table-column>
           <el-table-column prop="prop" label="图片" width="width"> 
-                <template slot-scope="{row,$index}">
-                  <img :src="row.imgUrl" style="width:100px;height:100px">
-                </template>
+              <template slot-scope="{row,$index}">
+                <img :src="row.imgUrl" style="width:100px;height:100px">
+              </template>
           </el-table-column>
           <el-table-column prop="imgName" label="名称" width="width"> 
           </el-table-column>
@@ -185,23 +185,43 @@ export default {
       this.$emit('changeScenes',0);
     },
     //保存按钮的事件
-    save(){
+    async save(){
       //整理参数
+      const {attrInfoList,skuInfo,spuSaleAttrList,imageList} = this;
       //整理平台属性
-      const {attrInfoList,skuInfo} = this;
-      //新建数据
-      let arr  = [];
-      //把收集到的数据整理一下
-      attrInfoList.forEach(item=>{
+      skuInfo.skuAttrValueList = attrInfoList.reduce((prev,item)=>{
         if(item.attrIdAndValueId){
-          const [attrId,valueId]  = item.attrIdAndValueId.split(":");
-          //携带给服务器参数应该是对象
-          let obj = {valueId,attrId};
-          arr.push(obj);
+          const [attrId,valueId] = item.attrIdAndValueId.split(":");
+          prev.push({attrId,valueId});
         }
-      });
-      //将整理好的参数赋值给skuInfo.skuAttrValueList
-      skuInfo.skuAttrValueList = arr;
+        return prev;
+      },[]);
+      //整理销售属性
+      skuInfo.skuSaleAttrValueList = spuSaleAttrList.reduce((prev,item)=>{
+        if(item.attrIdAndValueId){
+          const [saleAttrId,saleAttrValueId] = item.attrIdAndValueId.split(":");
+          prev.push({saleAttrId,saleAttrValueId});
+        }
+        return prev;
+      },[])
+      //整理图片的数据
+      skuInfo.skuImageList = imageList.map(item=>{
+        return {
+          imgName:item.imgName,
+          imgUrl: item.imgUrl,
+          isDefault: item.isDefault,
+          spuImgId:item.id
+        }
+      })
+      //发请求
+      let result =  await this.$API.spu.reqAddSku(skuInfo);
+      if(result.code==200){
+        this.$message({type:'success',message:'添加SKU成功'})
+        //自定义事件,让父组件切换场景0
+      this.$emit('changeScenes',0);
+      }
+      
+
     }
   },
 };

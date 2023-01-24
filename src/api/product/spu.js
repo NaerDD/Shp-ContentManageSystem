@@ -38,3 +38,6 @@ export const reqAttrInfoList = (category1Id,category2Id,category3Id)=>request({u
   
 //添加SKU
 export const reqAddSku = (skuInfo)=>request({url:`/admin/product/saveSkuInfo`,method:'post',data:skuInfo});
+
+//获取SKU列表数据
+export const reqSkuList = (spuId)=>request({url:`/admin/product/findBySpuId/${spuId}`,method:'get'});

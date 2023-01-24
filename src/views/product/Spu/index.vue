@@ -17,7 +17,7 @@
               <!-- 这里按钮将来用hintButton替换 -->
               <hint-button type="success" icon="el-icon-plus" size="mini" title="添加sku" @click="addSku(row)"></hint-button>
               <hint-button type="warning" icon="el-icon-edit" size="mini" title="修改spu" @click="updateSpu(row)"></hint-button>
-              <hint-button type="info" icon="el-icon-info" size="mini" title="查看当前spu的sku列表"></hint-button>
+              <hint-button type="info" icon="el-icon-info" size="mini" title="查看当前spu的sku列表" @click="handler(row)"></hint-button>
               <el-popconfirm title="这是一段内容确定删除吗？" @onConfirm="deleteSpu(row)">
                   <hint-button  type="danger" icon="el-icon-delete" size="mini" title="删除spu" slot="reference"></hint-button>
               </el-popconfirm>
@@ -45,6 +45,22 @@
       <SpuForm v-show="scene==1" @changeScene="changeScene" ref="spu"></SpuForm>
       <SkuForm v-show="scene==2" @changeScenes="changeScene" ref="sku"></SkuForm>
     </el-card>
+    <el-dialog :title="`${spu.spuName}的sku列表`" :visible.sync="dialogTableVisible" :before-close="close">
+      <!-- table展示sku列表 -->
+      <el-table :data="skuList"  style="width:100%" border v-loading="loading">
+        <el-table-column prop="skuName" label="名称" width="width">
+        </el-table-column>
+        <el-table-column prop="price" label="价格" width="width">
+        </el-table-column>
+        <el-table-column prop="weight" label="重量" width="width">
+        </el-table-column>
+        <el-table-column label="默认图片" width="width">
+          <template slot-scope="{row,$index}">
+            <img :src="row.skuDefaultImg" alt="" style="width:100px;height:100px">
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-dialog>
   </div>
 </template>
 
@@ -65,11 +81,16 @@ export default {
       records:[],//spu列表的数据
       total:0,//分页器一共需要展示的数据条数
       scene:0,//代表展示SPUI列表数据 1添加SPU|修改SPU 2添加SKU
-    };
+      //控制对话框的显示隐藏
+      dialogTableVisible: false,
+      spu:{},
+      skuList:[],//存储的是SKU列表的数据
+      loading:true,
+  };
   },
   methods: {
     //三级联动的自定义事件 把子的id传给父
-    getCategoryId({ categoryId, level }) {
+    getCategoryId({categoryId,level}) {
       //categoryId 获取123级分类的id level 区分是几级id
       if (level == 1) {
         this.category1Id = categoryId;
@@ -155,7 +176,27 @@ export default {
       //清除数据
       Object.assign(this._data,this.$options.data());
     },
-
+    //查看sku的按钮的回调
+    async handler(spu){
+      this.dialogTableVisible = true;
+      this.spu = spu;
+      let result = await this.$API.spu.reqSkuList(spu.id);
+      // console.log(result);
+      if(result.code==200){
+        this.skuList = result.data;
+        this.loading = false;
+      }
+      
+    },
+    //关闭对话框的回调
+    close(done){
+      //loading属性再次变为真
+      this.loading = true;
+      //清楚sku列表的数据
+      this.skuList = [];
+      //管理关闭对话框
+      done();
+    },
   },
   components:{
     SpuForm,

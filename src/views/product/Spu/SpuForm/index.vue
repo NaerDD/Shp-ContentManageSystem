@@ -267,7 +267,7 @@ export default {
       //获取品牌的信息
       let tradeMarkResult = await this.$API.spu.reqTradeMarkList();
       if (tradeMarkResult.code == 200) {
-        this.tradeMarkList = TradeMarkResult.data;
+        this.tradeMarkList = tradeMarkResult.data;
       }
       //获取平台全部的销售属性
       let saleResult = await this.$API.spu.reqBaseSaleAttrList();
