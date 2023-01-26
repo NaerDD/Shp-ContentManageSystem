@@ -1,30 +1,27 @@
 <template>
-  <div class="dashboard-container">
-    <div class="dashboard-text">name: {{ name }}</div>
+  <div>
+    首页
+    <Card></Card>
+    <Sale></Sale>
+    <Observe></Observe>
   </div>
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
-
+import Observe from './Observe'
+import Sale from './Sale'
+import Card from './Card'
 export default {
-  name: 'Dashboard',
-  computed: {
-    ...mapGetters([
-      'name'
-    ])
+  name:'',
+  components:{
+    Card,Sale,Observe
+  },
+  mounted(){
+    this.$store.dispatch('getData');
   }
 }
 </script>
 
-<style lang="scss" scoped>
-.dashboard {
-  &-container {
-    margin: 30px;
-  }
-  &-text {
-    font-size: 30px;
-    line-height: 46px;
-  }
-}
+<style scoped>
+
 </style>
