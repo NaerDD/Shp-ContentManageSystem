@@ -1,7 +1,10 @@
 <template>
   <div class="login-container">
     <!-- el-form组件:elementUI插件里面的一个组件,展示表单元素 model:用于收集表单数据 rules:表单验证规则 -->
-    <el-form ref="loginForm" :model="loginForm" :rules="loginRules" class="login-form" auto-complete="on" label-position="left">
+    <el-form ref="loginForm" :model="loginForm" 
+    
+     class="login-form" auto-complete="on" label-position="left">
+     <!-- :rules="loginRules" -->
 
       <div class="title-container">
         <h3 class="title">登 录</h3>
